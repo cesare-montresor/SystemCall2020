@@ -17,11 +17,10 @@
 #include "device.h"
 #include "signal.h"
 
-
 void initSignals();
 void receiveSignal(int signal);
 void destroyServer();
-void waitForKey();
+
 
 PositionFile *pos_file;
 AckTable* ack_table;
@@ -48,7 +47,7 @@ int main(int argc, char * argv[]) {
     clearScreen();
 		
     //Read the file_posizioni
-    printf("Load positions %*s",10+1," ");
+    printf("Load positions %*s",10,"\t");
     char* filename_pos = argv[2]; 
 		pos_file = loadPositionFile(filename_pos);
     printf("[ OK ]\n");
@@ -61,50 +60,60 @@ int main(int argc, char * argv[]) {
     printf("[ OK ]\n");
 
     // ***** Board *****
-    printf("Board setup %*s",10,"\t");
+    printf("Board setup %*s",15,"\t");
     board = createBoard(DEVICE_NUM + 1);
     initBoard(board);
     printf("[ OK ]\n");
     
     // ***** Device *****
-    printf("Devices setup\n");
+    printf("\nDevices setup\n");
     device_list = malloc(sizeof(Device*) * DEVICE_NUM);
+
+    //DEBUG: Write device PIDs for client spawner
+    char write_buff[30]; //DEBUG
+    int srv_fd = open("output/server.run", O_WRONLY | O_TRUNC | O_CREAT | S_IRUSR, 0777); //DEBUG
     
     for(int i=0; i < DEVICE_NUM; i++){
       PositionFileRow *device_row = pos_file->head[i].next;
       device_list[i] = createDevice(i, board, ack_table, device_row, pos_file->count);
       forkDevice(device_list[i]);
-      printf("Device %d forked PID: %d\n", i, device_list[i]->pid);
+      printf("Device %d: PID = %d %*s[ OK ]\n", i, device_list[i]->pid,5,"\t");
+
+      int str_len = sprintf(write_buff,"%d ", device_list[i]->pid); //DEBUG
+      write(srv_fd, write_buff, str_len); //DEBUG*/
     }
-    printf("Devices setup %*s[ OK ]\n",10,"\t");
+ 		close(srv_fd); //DEBUG
+
+    printf("Devices setup %*s[ OK ]\n",11,"\t");
 		
     // ***** Server *****
-    printf("Running server\n");
+    printf("\nRunning server\n");
     initSignals();
     long tick = 0;
     do{
-			// Start device execution ( 0 -> 1 -> 2 -> 3 -> 4 )
-      startTurnBoard(board); 
 			
-      sleep(1);
-      //waitForKey();
+			if (SERVER_DEBUG == 1){
+        printf("\n[DEBUG MODE] press a key to continue ...\n");
+        waitForKey();  
+      }else{
+        sleep(1); 
+      }
+
       clearScreen();
 
-      waitTurnBoard(board, DEVICE_NUM); //wait for last semaphore ( 5 )
-			  
-      printf("Ciclo: %ld\n",tick++);
+      printf("Cycle: %ld\n",tick++);
+			printf("Server pid : %d\n", getpid());
       printBoard(board); 
       printAckTable(ack_table); 
+      
+      startTurnBoard(board); //Start device execution ( 0 -> 1 -> 2 -> 3 -> 4 )
+      waitTurnBoard(board, DEVICE_NUM); //Wait for last semaphore ( 5 )
       
     }while(TRUE);
 		
 		return 0;
 }
 
-void waitForKey(){
-  char nl;
-  scanf("%c",&nl);
-}
 
 void initSignals(){
 		signal(SIGINT, receiveSignal);
@@ -124,24 +133,18 @@ void initSignals(){
 
 void receiveSignal(int signal){
   if (signal == SIGINT){
-    //Wait for children to die, lol
+    //Wait for children to die
     while(wait(NULL) > 0){};
-
-    int pid = getpid();
-    printf("[ %d ]",pid);
-    int found = 0;
+    printf("\n[SERVER] All children died! \n");
     
-    //TODO: propagate signal to ackmanager & devices
 	  destroyServer();
     printf("\n");
 		
     exit(0);
   }
-
 }
 
-void destroyServer(){
-  destroyAckTable(ack_table);
+void destroyServer(){  
   destroyBoard(board);
 }
 

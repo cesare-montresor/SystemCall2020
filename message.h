@@ -5,6 +5,7 @@
 #define _MESSAGE_HH
 
 #include "defines.h"
+#include "utils.h"
 
 struct Message{
   pid_t pid_sender;

@@ -4,7 +4,6 @@
 
 #include "shared_memory.h"
 
-
 //Shared memory
 SharedMemory* createSharedMemory(size_t size){ //, int shm_flags ){
   SharedMemory *mem = malloc( sizeof(SharedMemory) );
@@ -20,8 +19,6 @@ void destroySharedMemory(SharedMemory *shm){
   free(shm);
 }
 
-
-
 MutexSharedMemory* createMutexSharedMemory(size_t size, int sem_cnt ){
   MutexSharedMemory *mx_mem = malloc( sizeof(MutexSharedMemory) );
   mx_mem->mem = createSharedMemory(size);
@@ -29,15 +26,11 @@ MutexSharedMemory* createMutexSharedMemory(size_t size, int sem_cnt ){
   return mx_mem;
 }
 
-
 void destroyMutexSharedMemory(MutexSharedMemory* sh_mem){
   destroySharedMemory(sh_mem->mem);
   destroySemaphore(sh_mem->semaphore);
   free(sh_mem);
 }
-
-
-
 
 //utility methods for SHM 
 int alloc_shared_memory(key_t shmKey, size_t size) {

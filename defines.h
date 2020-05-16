@@ -32,7 +32,4 @@
 #define TRUE  (1==1)
 
 
-//Data types
-
-
 #endif

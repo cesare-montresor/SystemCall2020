@@ -16,7 +16,7 @@ Semaphore* createSemaphore(int num){
 }
 
 void destroySemaphore(Semaphore* sem){
-	if (semctl(sem->id, 0, IPC_RMID, NULL) == -1)
+	if (semctl(sem->id, 0, IPC_RMID, NULL) == -1    )
         errExit("semctl IPC_RMID failed");
   free(sem);
 }

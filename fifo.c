@@ -8,7 +8,7 @@ Fifo* createFifo(char *fifo_path){
   Fifo *fifo = malloc(sizeof(Fifo));
   fifo->fifo_path = fifo_path;
  
-  int res = mkfifo(fifo->fifo_path, S_IRUSR | S_IWUSR);
+  int res = mkfifo( fifo->fifo_path, S_IRUSR | S_IWUSR );
 	if(res == -1){
 		errExit("mkfifo failed!"); 
 	}
