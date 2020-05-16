@@ -3,6 +3,7 @@
 
 
 PositionFile* loadPositionFile(char* path){
+    printf("\n\n");
     int row_len = (DEVICE_NUM*4); 
     PositionFile* pos = malloc(sizeof(PositionFile));
     for(int i=0;i<DEVICE_NUM;i++){
@@ -45,6 +46,6 @@ PositionFile* loadPositionFile(char* path){
       }
 			pos->count++;
     }while(!finished);
-    
+    printf("Pos read count: %d", pos->count);
 		return pos;
 }

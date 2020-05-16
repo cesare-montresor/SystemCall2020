@@ -1,13 +1,9 @@
 #include "ack_table.h"
 #include <errno.h>
-#include "signal.h"
 
 //Private functions
 void runAckTableManager(AckTable *ack_table);
 void submitCompletedAck(AckTable *ack_table);
-
-void receiveAckManager(int signal);
-void initSignalsAckManager();
 
 AckTable* createAckTable(key_t msg_queue_key, int num_rows, int dev_num){
   // Create ACKTable ds
@@ -50,8 +46,6 @@ void initAckTable(AckTable *ack_table, int sem_value ){
   }
 }
 
-AckTable *forkedAckTable;
-
 int forkAckTableManager(AckTable *ack_table){
   pid_t pid = fork();
 
@@ -68,9 +62,6 @@ int forkAckTableManager(AckTable *ack_table){
   }
 
   //Child (Ack Manager)
-  //initSignalsAckManager();
-  forkedAckTable = ack_table;
-	
   ack_table->pid = getpid();
   runAckTableManager(ack_table);
   
@@ -78,8 +69,8 @@ int forkAckTableManager(AckTable *ack_table){
 }
 
 void runAckTableManager(AckTable *ack_table){
-	initSignalsAckManager();
 
+  //Child (Ack Manager)
   while(TRUE){
     submitCompletedAck(ack_table);
     sleep(5);
@@ -175,7 +166,7 @@ void addAckTableRow(AckTable *ack_table, AckTableRow *new_row){
       //found_slot = slot;
       for(found_slot = slot ; found_slot < slot+slot_size; found_slot++ ){
         if(ack_list->rows[found_slot].message_id == 0){
-          printf("oldAck(%d, %d, %d )",row->message_id, slot, found_slot-slot );
+          printf("addAck(%d, %d, %d )",row->message_id, slot, found_slot-slot );
           ack_list->rows[found_slot].pid_sender = new_row->pid_sender;
           ack_list->rows[found_slot].pid_reciever = new_row->pid_reciever;
           ack_list->rows[found_slot].message_id = new_row->message_id;
@@ -188,7 +179,7 @@ void addAckTableRow(AckTable *ack_table, AckTableRow *new_row){
   }
 
   if (found_slot == -1 && free_slot != -1){
-    printf("newAck(%d)", free_slot );
+    printf("newAck(%d)", found_slot );
     ack_list->rows[free_slot].pid_sender = new_row->pid_sender;
     ack_list->rows[free_slot].pid_reciever = new_row->pid_reciever;
     ack_list->rows[free_slot].message_id = new_row->message_id;
@@ -257,26 +248,5 @@ void submitCompletedAck(AckTable *ack_table){
   releaseAckTable(ack_table);
 }
 
-void initSignalsAckManager(){
-		signal(SIGINT, receiveAckManager);
 
-		sigset_t mySet;
-
-		//Initialize mySet to contain all signals
-		sigfillset(&mySet);
-
-		//Remove SIGINT from mySet
-		sigdelset(&mySet, SIGINT);
-
-		//Blocking all signals but SIGTERM
-		sigprocmask(SIG_SETMASK, &mySet, 0);		
-}
-
-void receiveAckManager(int signal){
-  if (signal == SIGINT){
-    printf("Ciao sono l'ack manager pid: %d\n",getpid());
-	  destroyAckTable(forkedAckTable);
-    exit(0);
-  }
-}
 

@@ -2,11 +2,9 @@
 
 #define  PRJ_ID 42
 
-#define SERVER_DEBUG 0
-
 //Devices
 #define DEVICE_NUM 5
-#define DEVICE_QUEUE_PATH "./tmp/dev_fifo.%d"
+#define DEVICE_QUEUE_PATH "/tmp/dev_fifo.%d"
 #define POS_ROW_LENGTH 21 
 #define LOC_MSG_LEN 10
 

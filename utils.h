@@ -7,4 +7,3 @@
 /// system call and terminates the calling process.
 void errExit(const char *msg);
 void clearScreen();
-void waitForKey();

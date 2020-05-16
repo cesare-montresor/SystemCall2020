@@ -12,6 +12,7 @@ void moveDevice(Device *device);
 
 void initSignalsDevice();
 void receiveSignalDevice(int signal);
+char* devicePathFifo(Device *device);
 
 int removeDevicesRecived(pid_t *devices_in_range, pid_t *devices_received);
 
@@ -44,7 +45,7 @@ int forkDevice(Device *device){
   forkedDevice = device;
   device->pid = getpid();
   
-	//printf("[ %d ] Sto per fare rundevice..	\n", device->pid);
+	printf("[ %d ] Sto per fare rundevice..	\n", device->pid);
   runDevice(device);
   exit(0);
 }
@@ -63,7 +64,7 @@ void runDevice(Device *device){
 	//Creating local list of messages  //Child (Device)
   initFifoDevice(device);
   
-  //printf("\n\n");
+  printf("\n\n");
   while(TRUE){
     waitTurnBoard(device->board, device->num);
 
@@ -105,7 +106,7 @@ void reciveDevice(Device *device){
   printf(" [RECEIVE] ");    
   size_t byte_read;
   do{
-    printf("reading...");
+
     MessageList* msg_node = malloc(sizeof(MessageList));
     byte_read = read(device->fifo->fifo_fd, &(msg_node->msg), sizeof(Message));
     if (byte_read != sizeof(Message)){
@@ -124,7 +125,8 @@ void reciveDevice(Device *device){
     row_to_add.pid_reciever = msg_node->msg.pid_reciever;
     row_to_add.message_id = msg_node->msg.message_id;
     row_to_add.timestamp = time(NULL);
-    
+    //printf("Add ack\n");
+    //addAckTableRow(AckTable *ack_table, AckTableRow *new_row);
     addAckTableRow(device->ack_table, &row_to_add);
 
   }while(byte_read == sizeof(Message));

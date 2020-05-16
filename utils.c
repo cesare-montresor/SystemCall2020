@@ -17,8 +17,3 @@ void errExit(const char *msg)
 void clearScreen(){
   printf("\e[1;1H\e[2J");
 }
-
-void waitForKey(){
-  char nl;
-  scanf("%c",&nl);
-}
